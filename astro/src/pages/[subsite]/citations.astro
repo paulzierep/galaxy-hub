@@ -22,11 +22,25 @@ const { subsite } = Astro.params;
 const { subsiteInfo } = Astro.props;
 const subsiteName = subsiteInfo?.name || subsite.toUpperCase();
 const isEurope = subsite === 'eu';
-const pageTitle = isEurope ? 'Galaxy Europe Citations' : `${subsiteName} Citations`;
-const headerTitle = isEurope ? 'Citations' : `${subsiteName} Citations`;
+let pageTitle = isEurope ? 'Galaxy Europe Citations' : `${subsiteName} Citations`;
+let headerTitle = isEurope ? 'Citations' : `${subsiteName} Citations`;
 const serverLabel = isEurope ? 'European Galaxy server' : `${subsiteName} Galaxy instance`;
-const pageDescription = `Scientific publications that cited the ${serverLabel}.`;
+let pageDescription = `Scientific publications that cited the ${serverLabel}.`;
 const eyebrow = isEurope ? { label: 'Galaxy Europe', href: '/eu/' } : undefined;
+
+// Per-subsite overrides for the citations page
+const citationsConfig: Record<string, { title?: string; headerTitle?: string; description?: string; note?: string }> = {
+  freiburg: {
+    title: 'Publications by the Freiburg Galaxy Team',
+    headerTitle: 'Publications by the Freiburg Galaxy Team',
+    description: '',
+    note: 'These are the publications by current or former members of the Freiburg Galaxy Team.',
+  },
+};
+pageTitle = citationsConfig[subsite]?.title ?? pageTitle;
+headerTitle = citationsConfig[subsite]?.headerTitle ?? headerTitle;
+pageDescription = citationsConfig[subsite]?.description ?? pageDescription;
+const pageNote = citationsConfig[subsite]?.note ?? 'Please help us support this project by acknowledging the service in publications that use it.';
 
 const projectRoot = path.resolve(fileURLToPath(new URL('../../../../', import.meta.url)));
 const contentRoot = path.join(projectRoot, 'content');
@@ -118,9 +132,11 @@ const emptyHint = `No citations found for ${subsite}. Add a BibTeX file at conte
     <PageHeader title={headerTitle} description={pageDescription} {eyebrow} />
 
     <div class="bg-white rounded-b-lg shadow-sm px-6 sm:px-8 py-8">
-      <p class="mb-6 max-w-3xl text-chicago-600">
-        Please help us support this project by acknowledging the service in publications that use it.
-      </p>
+      {pageNote && (
+        <p class="mb-6 max-w-3xl text-chicago-600">
+          {pageNote}
+        </p>
+      )}
 
       {
         !exists || citations.length === 0 ? (
