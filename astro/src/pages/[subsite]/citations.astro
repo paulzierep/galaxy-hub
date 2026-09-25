@@ -29,13 +29,15 @@ let pageDescription = `Scientific publications that cited the ${serverLabel}.`;
 const eyebrow = isEurope ? { label: 'Galaxy Europe', href: '/eu/' } : undefined;
 
 // Per-subsite overrides for the citations page
-const citationsConfig: Record<string, { title?: string; headerTitle?: string; description?: string; note?: string }> = {
-  freiburg: {
-    title: 'Publications by the Freiburg Galaxy Team',
-    headerTitle: 'Publications by the Freiburg Galaxy Team',
-    description: '',
-    note: 'These are the publications by current or former members of the Freiburg Galaxy Team.',
-  },
+const freiburgCitationsConfig = {
+  title: 'Publications by the Freiburg Galaxy Team',
+  headerTitle: 'Publications by the Freiburg Galaxy Team',
+  description: '',
+  note: 'These are the publications by current or former members of the Freiburg Galaxy Team.',
+};
+const citationsConfig: Record<string, { title?: string; headerTitle?: string; description?: string; note?: string; bibSubsite?: string }> = {
+  freiburg: { ...freiburgCitationsConfig },
+  eu: { ...freiburgCitationsConfig, bibSubsite: 'freiburg' },
 };
 pageTitle = citationsConfig[subsite]?.title ?? pageTitle;
 headerTitle = citationsConfig[subsite]?.headerTitle ?? headerTitle;
@@ -44,7 +46,8 @@ const pageNote = citationsConfig[subsite]?.note ?? 'Please help us support this 
 
 const projectRoot = path.resolve(fileURLToPath(new URL('../../../../', import.meta.url)));
 const contentRoot = path.join(projectRoot, 'content');
-const citationDir = path.join(contentRoot, subsite, 'citations');
+const citationSubsite = citationsConfig[subsite]?.bibSubsite ?? subsite;
+const citationDir = path.join(contentRoot, citationSubsite, 'citations');
 
 function toYear(item: any) {
   const parts = item?.issued?.['date-parts']?.[0];
@@ -124,7 +127,7 @@ const years = Object.keys(yearCounts).sort((a, b) => {
   if (b === 'unknown') return -1;
   return Number(b) - Number(a);
 });
-const emptyHint = `No citations found for ${subsite}. Add a BibTeX file at content/${subsite}/citations/.`;
+const emptyHint = `No citations found for ${subsite}. Add a BibTeX file at content/${citationSubsite}/citations/.`;
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
